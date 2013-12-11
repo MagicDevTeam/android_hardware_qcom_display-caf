@@ -107,12 +107,6 @@ void RotMem::Mem::setReleaseFd(const int& fence) {
     mRelFence[mCurrOffset] = fence;
 }
 
-void RotMem::Mem::resetReleaseFd() {
-    //Will wait for previous offline rotation to finish, close fence fd
-    //and reset
-    setReleaseFd(-1);
-}
-
 //============RotMgr=========================
 RotMgr * RotMgr::sRotMgr = NULL;
 
