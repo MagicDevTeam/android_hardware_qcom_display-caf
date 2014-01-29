@@ -96,22 +96,33 @@ static void setExtOrientation(hwc_context_t *ctx, uint32_t orientation) {
     ctx->mExtOrientation = orientation;
 }
 
-static void isExternalConnected(hwc_context_t* ctx, Parcel* outParcel) {
-    int connected;
-    connected = ctx->dpyAttr[HWC_DISPLAY_EXTERNAL].connected ? 1 : 0;
-    outParcel->writeInt32(connected);
+static void setBufferMirrorMode(hwc_context_t *ctx, uint32_t enable) {
+    ctx->mBufferMirrorMode = enable;
 }
 
-static void getDisplayAttributes(hwc_context_t* ctx, const Parcel* inParcel,
+status_t QClient::notifyCallback(uint32_t command, const Parcel* inParcel,
         Parcel* outParcel) {
-    int dpy = inParcel->readInt32();
-    outParcel->writeInt32(ctx->dpyAttr[dpy].vsync_period);
-    outParcel->writeInt32(ctx->dpyAttr[dpy].xres);
-    outParcel->writeInt32(ctx->dpyAttr[dpy].yres);
-    outParcel->writeFloat(ctx->dpyAttr[dpy].xdpi);
-    outParcel->writeFloat(ctx->dpyAttr[dpy].ydpi);
-    //XXX: Need to check what to return for HDMI
-    outParcel->writeInt32(ctx->mMDP.panel);
+
+    switch(command) {
+        case IQService::SECURING:
+            securing(mHwcContext, inParcel->readInt32());
+            break;
+        case IQService::UNSECURING:
+            unsecuring(mHwcContext, inParcel->readInt32());
+            break;
+        case IQService::SCREEN_REFRESH:
+            return screenRefresh(mHwcContext);
+            break;
+        case IQService::EXTERNAL_ORIENTATION:
+            setExtOrientation(mHwcContext, inParcel->readInt32());
+            break;
+        case IQService::BUFFER_MIRRORMODE:
+            setBufferMirrorMode(mHwcContext, inParcel->readInt32());
+            break;
+        default:
+            return NO_ERROR;
+    }
+    return NO_ERROR;
 }
 static void setHSIC(hwc_context_t* ctx, const Parcel* inParcel) {
     int dpy = inParcel->readInt32();
@@ -192,6 +203,7 @@ status_t QClient::notifyCallback(uint32_t command, const Parcel* inParcel,
     }
     return ret;
 }
+
 
 
 }
